@@ -1,67 +1,33 @@
 #include <iostream>
-#include <vector>
-#include <mutex>
-#include <queue>
-#include <thread>
 #include <filesystem>
-#include <atomic>
-#include <condition_variable>
+#include <thread>
 
 #include "search.h"
+#include "thread_pool.h"
 
 namespace fs = std::filesystem;
 
-std::queue<std::string> task_queue;
-std::mutex mu;
-std::condition_variable cv;
-std::atomic<bool> done(false);
-
-// 處理一個檔案中的目標
-void worker(const std::string &target)
+void search_directory(const std::string &path,
+                      const std::string &target,
+                      ThreadPool &pool)
 {
-    while (true)
+    if (!fs::exists(path) || !fs::is_directory(path))
     {
-        std::unique_lock<std::mutex> lock(mu);
-
-        cv.wait(lock, []
-                { return !task_queue.empty() || done; });
-
-        if (done && task_queue.empty())
-            return;
-
-        std::string file = task_queue.front();
-        task_queue.pop();
-        lock.unlock();
-        search_file(file, target);
-    }
-}
-
-void search_directory(const std::string &path)
-{
-    if (!fs::exists(path))
-    {
-        std::cerr << "Path does not exist: " << path << "\n";
+        std::cerr << "Invalid directory: " << path << "\n";
         return;
     } // if
 
-    if (!fs::is_directory(path))
-    {
-        std::cerr << "Not a directory: " << path << "\n";
-        return;
-    } // if
-
+    // 遞迴尋找目錄與檔案
     for (const auto &p : fs::recursive_directory_iterator(path))
     {
-        if (fs::is_regular_file(p.path()))
+        // 只留下檔案
+        if (fs::is_regular_file(p))
         {
-            {
-                std::lock_guard<std::mutex> lock(mu);
-                task_queue.push(p.path().string());
-            }
-
-            cv.notify_one();
+            std::string file = p.path().string();
+            pool.enqueue([file, target]()
+                         { search_file(file, target); });
         } // if
-    }
+    } // for
 }
 
 int main(int argc, char *argv[])
@@ -75,23 +41,10 @@ int main(int argc, char *argv[])
     std::string target = argv[1];
     std::string path = argv[2];
 
-    // 建立 thread pool
-    std::vector<std::thread> threads;
-    for (int i = 0; i < 4; i++)
-        threads.emplace_back(worker, target);
+    // 取得硬體建議 thread 數量，拿不到就直接用 4 個 threads
+    unsigned int num_threads =
+        std::thread::hardware_concurrency() ? std::thread::hardware_concurrency() : 4;
 
-    // 掃描目錄
-    search_directory(path);
-
-    // 通知 worker 結束
-    {
-        std::lock_guard<std::mutex> lock(mu);
-        done = true;
-    }
-    cv.notify_all();
-
-    // 等待 threads
-    for (auto &t : threads)
-        t.join();
-    return 0;
-}
+    ThreadPool pool(num_threads);
+    search_directory(path, target, pool);
+} // main
