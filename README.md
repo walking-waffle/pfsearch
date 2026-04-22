@@ -17,26 +17,26 @@ C++17 or later
 g++ mingw
 
 ### Linux
-make
+`make`
 
 ### Windows (MinGW)
-mingw32-make.exe
+`mingw32-make.exe`
 
 # Usage
-pfsearch <target> <path>
+`pfsearch <target> <path>`
 
 
 ### Example
-pfsearch "int" .
-pfsearch "std::vector" src
-pfsearch "void .*\\(" include
+`pfsearch "int" .`  
+`pfsearch "std::vector" src`  
+`pfsearch "void .*\\(" include`  
 
 # Structure
-pfsearch/
- ├── main.cpp
- ├── search.cpp
- ├── search.h
- ├── thread_pool.h
- ├── thread_pool.cpp
- ├── test // put some test file to search
+pfsearch/  
+ ├── main.cpp  
+ ├── search.cpp  
+ ├── search.h  
+ ├── thread_pool.h  
+ ├── thread_pool.cpp  
+ ├── test // put some test file to search  
  └── README.md
