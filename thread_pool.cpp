@@ -17,6 +17,7 @@ void ThreadPool::enqueue(std::function<void()> task)
         std::lock_guard<std::mutex> lock(mu);
         tasks.push(task);
     }
+    // 有 task 喚醒一個 thread
     cv.notify_one();
 }
 
@@ -26,9 +27,10 @@ void ThreadPool::stop()
         std::lock_guard<std::mutex> lock(mu);
         done = true;
     }
-
+    // 結束了 喚醒所有 thread 讓他們看到 done = true
     cv.notify_all();
 
+    // 等待所有 thread 結束
     for (auto &t : threads)
         t.join();
 }
@@ -48,9 +50,11 @@ void ThreadPool::worker()
         if (done && tasks.empty())
             return;
 
+        // task 的型別的 function
         auto task = tasks.front();
         tasks.pop();
 
+        // 提前解鎖，再開始搜尋
         lock.unlock();
         task();
     }
