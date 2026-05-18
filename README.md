@@ -17,11 +17,11 @@ C++17 or later
 g++ mingw
 
 ### Linux
-`make`
+`make`  
 `make clean`
 
 ### Windows (MinGW)
-`mingw32-make.exe`
+`mingw32-make.exe`  
 `mingw32-make.exe clean`
 
 # Usage
