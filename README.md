@@ -18,12 +18,14 @@ g++ mingw
 
 ### Linux
 `make`
+`make clean`
 
 ### Windows (MinGW)
 `mingw32-make.exe`
+`mingw32-make.exe clean`
 
 # Usage
-`pfsearch <target> <path>`
+`./pfsearch(.exe) <target> <path>`
 
 
 ### Example
