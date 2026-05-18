@@ -6,7 +6,7 @@ The project demonstrates practical usage of:
 - C++ multithreading (std::thread)
 - std::mutex and std::condition_variable
 - filesystem traversal using std::filesystem
-- bnary file ignore
+- binary file ignore
 
 The program creates a small thread pool, recursively enumerates files in a directory, and distributes file search tasks among worker threads. Each worker reads files line-by-line and prints matches in a grep-like format.
 
